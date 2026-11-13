@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "MakeQR – QR for this page",
+  "version": "1.0.0",
+  "description": "Make a QR code for the page you are viewing, in one click.",
+  "permissions": ["activeTab"],
+  "action": { "default_popup": "popup.html", "default_title": "Make a QR code for this page" }
+}

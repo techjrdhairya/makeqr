@@ -1,0 +1,344 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile in MakeQR",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique Firebase Authentication UID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name or nickname",
+          "maxLength": 128
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar image URL",
+          "maxLength": 1024
+        },
+        "coins": {
+          "type": "number",
+          "description": "Virtual coins balance for unlocking premium features"
+        },
+        "unlockedFeatures": {
+          "type": "array",
+          "description": "List of feature IDs unlocked with coins"
+        },
+        "guestTrialUsed": {
+          "type": "boolean",
+          "description": "Whether the one-time trial was already redeemed"
+        },
+        "qrsCreated": {
+          "type": "number",
+          "description": "Total number of QR codes created by user"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of user creation",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of user profile update",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "createdAt", "updatedAt"]
+    },
+    "QRCode": {
+      "title": "QRCode",
+      "description": "Saved branded QR Code with design configuration and payload metadata",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the saved QR code",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the owner",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Name or title given to the QR code",
+          "maxLength": 120
+        },
+        "contentType": {
+          "type": "string",
+          "description": "Type of content encoded: url, wifi, vcard, file, etc.",
+          "maxLength": 32
+        },
+        "summaryText": {
+          "type": "string",
+          "description": "Short human-readable summary of the encoded target",
+          "maxLength": 500
+        },
+        "previewThumbnail": {
+          "type": "string",
+          "description": "PNG Data URL or thumbnail representation",
+          "maxLength": 250000
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Epoch timestamp in milliseconds when code was saved"
+        },
+        "config": {
+          "type": "object",
+          "description": "Complete QRConfig object containing styling, frame, colors, and content details"
+        }
+      },
+      "required": ["id", "userId", "name", "contentType", "createdAt", "config"]
+    },
+    "PublicFile": {
+      "title": "PublicFile",
+      "description": "Publicly accessible media file record configured in the database for QR code sharing and public viewing",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique file identifier (e.g. f_file_12345)",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "File name including extension",
+          "maxLength": 256
+        },
+        "type": {
+          "type": "string",
+          "description": "MIME type (e.g. video/mp4)",
+          "maxLength": 64
+        },
+        "size": {
+          "type": "number",
+          "description": "File size in bytes"
+        },
+        "url": {
+          "type": "string",
+          "description": "Public stream/download URL",
+          "maxLength": 2048
+        },
+        "previewUrl": {
+          "type": "string",
+          "description": "Poster preview or thumbnail URL",
+          "maxLength": 2048
+        },
+        "title": {
+          "type": "string",
+          "description": "Descriptive display title",
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "description": "File description or transcript",
+          "maxLength": 2048
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Epoch timestamp in milliseconds"
+        }
+      },
+      "required": ["id", "name", "type", "url", "createdAt"]
+    },
+    "UserFile": {
+      "title": "UserFile",
+      "description": "Uploaded media file or document saved directly in Firestore by an authenticated user",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique file ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Authentication UID of the file owner",
+          "maxLength": 128
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Email address of the file creator",
+          "maxLength": 256
+        },
+        "name": {
+          "type": "string",
+          "description": "Original file name",
+          "maxLength": 256
+        },
+        "type": {
+          "type": "string",
+          "description": "MIME type of the file",
+          "maxLength": 64
+        },
+        "size": {
+          "type": "number",
+          "description": "File size in bytes"
+        },
+        "url": {
+          "type": "string",
+          "description": "Download or data URL string stored in Firestore document",
+          "maxLength": 1048576
+        },
+        "previewUrl": {
+          "type": "string",
+          "description": "Image preview data URL or poster thumbnail",
+          "maxLength": 350000
+        },
+        "customSlug": {
+          "type": "string",
+          "description": "Custom vanity slug or short link",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Human readable title or subject",
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "description": "Notes, description or transcription",
+          "maxLength": 2048
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp in milliseconds when file was uploaded"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Timestamp in milliseconds of last update"
+        }
+      },
+      "required": ["id", "userId", "name", "type", "url", "createdAt"]
+    },
+    "DynamicLink": {
+      "title": "DynamicLink",
+      "description": "Custom vanity short link and dynamic QR redirect record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Short vanity slug or link id",
+          "maxLength": 128
+        },
+        "targetUrl": {
+          "type": "string",
+          "description": "Destination URL where users are redirected",
+          "maxLength": 2048
+        },
+        "title": {
+          "type": "string",
+          "description": "Label or campaign title",
+          "maxLength": 256
+        },
+        "contentType": {
+          "type": "string",
+          "description": "Content category (url, file, etc.)",
+          "maxLength": 64
+        },
+        "scanCount": {
+          "type": "number",
+          "description": "Lifetime scan and click count"
+        },
+        "lastScannedAt": {
+          "type": "number",
+          "description": "Timestamp of most recent scan"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp of creation"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Timestamp of update"
+        }
+      },
+      "required": ["id", "targetUrl", "createdAt"]
+    },
+    "QRAnalytics": {
+      "title": "QRAnalytics",
+      "description": "Real-time scan analytics, scan counts, geographic locations, and devices for a QR code",
+      "type": "object",
+      "properties": {
+        "qrId": {
+          "type": "string",
+          "description": "ID of the QR code",
+          "maxLength": 128
+        },
+        "scanCount": {
+          "type": "number",
+          "description": "Total number of scans"
+        },
+        "lastScannedAt": {
+          "type": "number",
+          "description": "Timestamp of the most recent scan in milliseconds"
+        },
+        "locations": {
+          "type": "array",
+          "description": "List of geographic locations with scan counts and coordinates"
+        },
+        "recentScans": {
+          "type": "array",
+          "description": "Log of recent scan events including timestamps, location names, and devices"
+        },
+        "devices": {
+          "type": "object",
+          "description": "Breakdown of device categories (mobile, desktop, tablet)"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Creation timestamp in milliseconds"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Last updated timestamp in milliseconds"
+        }
+      },
+      "required": ["qrId", "scanCount", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profile metadata and authentication identity"
+    },
+    "/users/{userId}/qrcodes/{qrId}": {
+      "schema": "QRCode",
+      "description": "Stores individual saved QR code designs created by the authenticated user"
+    },
+    "/users/{userId}/files/{fileId}": {
+      "schema": "UserFile",
+      "description": "Stores uploaded media files and documents owned by the user in Firestore"
+    },
+    "/qrcodes/{qrId}": {
+      "schema": "QRCode",
+      "description": "Stores user saved QR code configurations queryable by user ID and visible directly in database root"
+    },
+    "/files/{fileId}": {
+      "schema": "UserFile",
+      "description": "Stores user-uploaded files accessible via file ID and linked to QR codes directly in database root"
+    },
+    "/public_files/{fileId}": {
+      "schema": "PublicFile",
+      "description": "Stores publicly accessible media files shared via QR code links"
+    },
+    "/dynamic_links/{slug}": {
+      "schema": "DynamicLink",
+      "description": "Stores custom vanity short links and dynamic QR code routing destinations"
+    },
+    "/qr_analytics/{qrId}": {
+      "schema": "QRAnalytics",
+      "description": "Stores real-time scan counter and geographic location data for each QR code"
+    }
+  }
+}
