@@ -1,25 +1,25 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, Search, Mail, LifeBuoy } from 'lucide-react';
 
-interface Faq { q: string; a: string; cat: 'Basics' | 'Dynamic & files' | 'Design & print' | 'Account & coins' }
+interface Faq { q: string; a: string; cat: 'Basics' | 'Dynamic & files' | 'Design & print' | 'Account & QRoins' }
 
 const FAQS: Faq[] = [
-  { cat: 'Basics', q: 'Is MakeQR really free?', a: 'Yes. Static QR codes, all content types, design tools, scanning and barcodes are free. A few premium tools are unlocked once with coins you earn by using the site.' },
+  { cat: 'Basics', q: 'Is MakeQR really free?', a: 'Yes. Static QR codes, all content types, design tools, scanning and barcodes are free. A few premium tools are unlocked once with QRoins you earn by using the site.' },
   { cat: 'Basics', q: 'Do my QR codes expire?', a: 'Static codes (URL, text, Wi-Fi, contact and similar) hold the data inside the image, so they work forever. Dynamic and file codes point to a short link, and you can set an expiry on those yourself.' },
   { cat: 'Basics', q: 'What is the difference between static and dynamic QR codes?', a: 'A static code stores your content directly and cannot be edited. A dynamic code stores a short link, so you can change where it points later without reprinting, and see scan analytics.' },
   { cat: 'Basics', q: 'How do I scan a QR code?', a: 'Open the Scanner from the top menu or the bottom bar on mobile. Allow camera access, or upload a picture of a QR code.' },
   { cat: 'Dynamic & files', q: 'Can I change the link after printing?', a: 'Yes, for dynamic codes. Open My QRs, pick the code and edit its destination. The printed code keeps working.' },
-  { cat: 'Dynamic & files', q: 'Can I share a PDF, image, audio or video with a QR code?', a: 'Yes. Choose the File type, upload it, and MakeQR creates a landing page for it. Hosting larger media is a coin unlock.' },
+  { cat: 'Dynamic & files', q: 'Can I share a PDF, image, audio or video with a QR code?', a: 'Yes. Choose the File type, upload it, and MakeQR creates a landing page for it. Hosting larger media is a QRoin unlock.' },
   { cat: 'Dynamic & files', q: 'Can I see how many times my code was scanned?', a: 'Yes. Dynamic codes have an analytics view with scan counts and approximate locations.' },
   { cat: 'Design & print', q: 'Which file format should I download?', a: 'Use PNG for screens and documents, SVG for large prints such as posters and signs, and the PDF sheet for printing several codes at once.' },
   { cat: 'Design & print', q: 'Why will my QR code not scan?', a: 'The most common causes are low contrast, a very light foreground colour, a logo that is too large, or printing too small. Use the scannability test in the studio and keep a quiet margin around the code.' },
   { cat: 'Design & print', q: 'How big should I print a QR code?', a: 'At least 2 cm × 2 cm (about 0.8 in) for close-range scanning. Add roughly 1 cm of size for every 10 cm of scanning distance.' },
   { cat: 'Design & print', q: 'What barcode formats are supported?', a: 'Code 128, Code 39, EAN-13, EAN-8, UPC-A, ITF-14, Interleaved 2 of 5, Codabar, MSI and Pharmacode.' },
-  { cat: 'Account & coins', q: 'Do I need an account?', a: 'No, but signing in saves your QR codes, coins and unlocks to the cloud so you can use them on any device.' },
-  { cat: 'Account & coins', q: 'How do I earn coins?', a: 'You earn 10 coins for each new QR code you create. See the Pricing page for what coins unlock.' },
+  { cat: 'Account & QRoins', q: 'Do I need an account?', a: 'No, but signing in saves your QR codes, QRoins and unlocks to the cloud so you can use them on any device.' },
+  { cat: 'Account & QRoins', q: 'How do I earn QRoins?', a: 'You earn 10 QRoins for each new QR code you create. See the Pricing page for what QRoins unlock.' },
 ];
 
-const CATS = ['All', 'Basics', 'Dynamic & files', 'Design & print', 'Account & coins'] as const;
+const CATS = ['All', 'Basics', 'Dynamic & files', 'Design & print', 'Account & QRoins'] as const;
 const OWNER_EMAIL = 'techjr.dhairya@gmail.com';
 
 export const SupportPage: React.FC = () => {

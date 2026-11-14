@@ -14,7 +14,6 @@ import {
   Plus,
   Grid,
   FolderHeart,
-  Coins,
   ShieldCheck,
   MoreHorizontal,
   Barcode,
@@ -182,7 +181,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-800">
                     {([
                       ['barcode', 'Barcode generator', Barcode],
-                      ['pricing', 'Pricing & coins', Coins],
+                      ['pricing', 'Pricing & QRoins', QrCode],
                       ['support', 'Help & FAQ', LifeBuoy],
                     ] as const).map(([id, text, Icon]) => (
                       <button
@@ -279,10 +278,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             type="button"
             onClick={() => openCoinsModal()}
             className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-50 to-amber-100/80 text-amber-900 dark:border-amber-700/60 dark:bg-gradient-to-r dark:from-amber-950/40 dark:to-amber-900/30 dark:text-amber-300 font-extrabold text-xs shadow-2xs hover:shadow-xs hover:border-amber-400 transition-all cursor-pointer group"
-            title="MakeQR Coins & Rewards"
+            title="MakeQR QRoins & Rewards"
           >
             <div className="h-4 w-4 rounded-full bg-amber-400 flex items-center justify-center text-amber-950 shadow-2xs group-hover:rotate-12 transition-transform shrink-0">
-              <Coins className="h-2.5 w-2.5" />
+              <QrCode className="h-2.5 w-2.5" />
             </div>
             <span className="font-black">{coins}</span>
             {guestTrialAvailable && (
@@ -348,8 +347,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
-                        <Coins className="h-4 w-4 text-amber-500" />
-                        <span>Coins &amp; Rewards</span>
+                        <QrCode className="h-4 w-4 text-amber-500" />
+                        <span>QRoins &amp; Rewards</span>
                       </div>
                       <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-black text-amber-700 dark:bg-amber-950/80 dark:text-amber-300">
                         {coins} 🪙

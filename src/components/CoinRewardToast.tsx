@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Coins, Sparkles, X } from 'lucide-react';
+import { QrCode as Coins, Sparkles, X } from 'lucide-react';
 import { useCoins } from '../context/CoinsContext';
 
 export const CoinRewardToast: React.FC = () => {

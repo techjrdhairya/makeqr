@@ -7,7 +7,6 @@ import {
   Home,
   MoreHorizontal,
   Barcode,
-  Coins,
   LifeBuoy,
   Sparkles,
   Wand2,
@@ -146,7 +145,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                   ...(onOpenTemplates ? [{ label: 'Templates', icon: Sparkles, fn: onOpenTemplates }] : []),
                   ...(onOpenAIChat ? [{ label: 'AI assistant', icon: Wand2, fn: onOpenAIChat }] : []),
                   { label: 'Barcode generator', icon: Barcode, fn: () => onNavigateView('barcode') },
-                  { label: 'Pricing & coins', icon: Coins, fn: () => onNavigateView('pricing') },
+                  { label: 'Pricing & QRoins', icon: QrCode, fn: () => onNavigateView('pricing') },
                   { label: 'Help & FAQ', icon: LifeBuoy, fn: () => onNavigateView('support') },
                   ...(onToggleTheme ? [{ label: isDark ? 'Light mode' : 'Dark mode', icon: isDark ? Sun : Moon, fn: onToggleTheme }] : []),
                 ].map(({ label, icon: Icon, fn }) => (

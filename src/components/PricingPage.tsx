@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Coins, Sparkles, Zap, Gift, UserPlus, QrCode, Lock } from 'lucide-react';
+import { Check, Sparkles, Zap, Gift, UserPlus, QrCode, Lock } from 'lucide-react';
 import { PREMIUM_FEATURES, useCoins } from '../context/CoinsContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,9 +29,9 @@ export const PricingPage: React.FC<{ onGoToStudio: () => void }> = ({ onGoToStud
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:px-8 pb-28 lg:pb-12">
       <header className="mx-auto mb-10 max-w-2xl text-center">
         <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-inset ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/60">
-          <Coins className="h-3.5 w-3.5" /> No subscription. No card.
+          <QrCode className="h-3.5 w-3.5" /> No subscription. No card.
         </div>
-        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">Free to use. Unlock extras with coins.</h1>
+        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">Free to use. Unlock extras with QRoins.</h1>
         <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
           Everything you need to make a great QR code is free. Premium tools are one-time unlocks paid in coins that you earn by using MakeQR.
         </p>
@@ -66,14 +66,14 @@ export const PricingPage: React.FC<{ onGoToStudio: () => void }> = ({ onGoToStud
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Premium unlocks</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Pay once with coins. Yours to keep.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Pay once with QRoins. Yours to keep.</p>
             </div>
             <button
               type="button"
               onClick={() => openCoinsModal()}
               className="inline-flex items-center gap-2 rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-50 to-amber-100/80 px-3 py-2 text-sm font-extrabold text-amber-900 dark:border-amber-700/60 dark:from-amber-950/40 dark:to-amber-900/30 dark:text-amber-300 cursor-pointer"
             >
-              <Coins className="h-4 w-4" /> Your balance: {coins}
+              <QrCode className="h-4 w-4" /> Your balance: {coins}
             </button>
           </div>
 
@@ -85,7 +85,7 @@ export const PricingPage: React.FC<{ onGoToStudio: () => void }> = ({ onGoToStud
                   <div className="mb-1 flex items-center justify-between">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{FEATURE_ICON[f.category]}</span>
                     <span className="inline-flex items-center gap-1 text-xs font-extrabold text-amber-700 dark:text-amber-300">
-                      <Coins className="h-3 w-3" /> {f.cost}
+                      <QrCode className="h-3 w-3" /> {f.cost}
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">{f.name}</h3>
@@ -110,11 +110,11 @@ export const PricingPage: React.FC<{ onGoToStudio: () => void }> = ({ onGoToStud
 
       {/* How to earn */}
       <section className="mt-10 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <h2 className="mb-4 text-lg font-extrabold text-slate-900 dark:text-white">How to earn coins</h2>
+        <h2 className="mb-4 text-lg font-extrabold text-slate-900 dark:text-white">How to earn QRoins</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { icon: QrCode, t: 'Create QR codes', d: 'Sign in and save a new QR code to earn 10 coins. Invite friends with your referral code and you both get 25 coins.' },
-            { icon: UserPlus, t: 'Sign in', d: 'Saving QR codes needs a free account, which also keeps your coins across devices.' },
+            { icon: QrCode, t: 'Create QR codes', d: 'Sign in and save a new QR code to earn 10 QRoins. Invite friends with your referral code and you both get 25 QRoins.' },
+            { icon: UserPlus, t: 'Sign in', d: 'Saving QR codes needs a free account, which also keeps your QRoins across devices.' },
             { icon: Gift, t: 'Try before you buy', d: 'Guests get one free trial of a premium tool.' },
           ].map(({ icon: Icon, t, d }) => (
             <div key={t} className="flex gap-3">
@@ -132,7 +132,7 @@ export const PricingPage: React.FC<{ onGoToStudio: () => void }> = ({ onGoToStud
             onClick={() => openAuthModal()}
             className="mt-5 inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 cursor-pointer"
           >
-            <Sparkles className="h-4 w-4" /> Sign in to keep your coins <Zap className="h-3.5 w-3.5" />
+            <Sparkles className="h-4 w-4" /> Sign in to keep your QRoins <Zap className="h-3.5 w-3.5" />
           </button>
         )}
       </section>

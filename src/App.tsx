@@ -769,7 +769,7 @@ function MainApp() {
     }`;
 
     // Award coins for creating a new QR (deduplicated!)
-    earnCoins(10, 'Earned 10 Coins for creating QR!', true, `create_qr_${qrFingerprint}`);
+    earnCoins(10, 'Earned 10 QRoins for creating QR!', true, `create_qr_${qrFingerprint}`);
 
     // Hosted pages must be live before anyone scans the QR
     if (config.contentType === 'page' && config.page && pageHasContent(config.page)) {

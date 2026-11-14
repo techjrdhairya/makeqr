@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Wand2, Loader2, Check, RefreshCw, Layers, Coins, Lock } from 'lucide-react';
+import { Sparkles, Wand2, Loader2, Check, RefreshCw, Layers, QrCode as Coins, Lock } from 'lucide-react';
 import { QRConfig, GradientType } from '../types';
 import { useCoins } from '../context/CoinsContext';
 
@@ -196,7 +196,7 @@ export const AIBrandStylist: React.FC<AIBrandStylistProps> = ({ config, onApplyA
               })}
               className="flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-950/80 px-2.5 py-0.5 text-[10px] font-black text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-200 cursor-pointer transition-colors shadow-2xs"
             >
-              <Coins className="h-3 w-3 text-amber-600" /> PRO • 15 🪙
+              <Coins className="h-3 w-3 text-amber-600" /> PRO • 15 🔳
             </button>
           )}
           <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-extrabold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">

@@ -167,7 +167,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           if (profile.isNewAccount) {
             setCoinToast({
               amount: 50,
-              message: 'Sign-in Bonus! +50 Coins added to your account 🪙',
+              message: 'Sign-in Bonus! +50 QRoins added to your account 🔳',
               timestamp: Date.now(),
             });
           }
@@ -204,7 +204,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           const bonus = Number(data.lastReferralBonus || 0);
           setCoinToast({
             amount: bonus,
-            message: `${data.lastReferralName || 'A friend'} joined with your code! +${bonus} coins 🎉`,
+            message: `${data.lastReferralName || 'A friend'} joined with your code! +${bonus} QRoins 🎉`,
             timestamp: Date.now(),
           });
         }
@@ -292,7 +292,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (coins < cost) {
       return {
         success: false,
-        reason: `Need ${cost - coins} more coins. Earn coins by creating QRs or signing in!`,
+        reason: `Need ${cost - coins} more QRoins. Earn QRoins by creating QRs or signing in!`,
       };
     }
 
@@ -304,7 +304,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setUnlockedFeatures(res.unlockedFeatures);
         setCoinToast({
           amount: -cost,
-          message: `Unlocked ${featureDef?.name || featureId}! (-${cost} Coins)`,
+          message: `Unlocked ${featureDef?.name || featureId}! (-${cost} QRoins)`,
           timestamp: Date.now(),
         });
         setIsCoinsModalOpen(false);
@@ -320,7 +320,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setUnlockedFeatures(newUnlocked);
     setCoinToast({
       amount: -cost,
-      message: `Unlocked ${featureDef?.name || featureId}! (-${cost} Coins)`,
+      message: `Unlocked ${featureDef?.name || featureId}! (-${cost} QRoins)`,
       timestamp: Date.now(),
     });
     setIsCoinsModalOpen(false);
@@ -330,7 +330,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const earnCoins = async (
     amount: number,
-    reason = 'Earned coins!',
+    reason = 'Earned QRoins!',
     isNewQr = false,
     dedupKey?: string
   ): Promise<boolean> => {
@@ -363,7 +363,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     setCoinToast({
       amount,
-      message: `+${amount} Coins: ${reason} 🪙`,
+      message: `+${amount} QRoins: ${reason} 🔳`,
       timestamp: Date.now(),
     });
     return true;
