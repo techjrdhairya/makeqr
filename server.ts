@@ -984,7 +984,7 @@ async function startServer() {
       'api', 'videos', 'assets', 'r', 'public', 'dist', 'src', 
       'index', 'favicon', 'admin', 'login', 'logout', 'dashboard', 
       'app', 'makeqr', 'studio', 'health', 'auth', 'files',
-      'barcode', 'pricing', 'support', 'expired', 'home', 'choose-type', 'my-codes'
+      'barcode', 'pricing', 'rewards', 'support', 'expired', 'home', 'choose-type', 'my-codes'
     ]);
  
     if (RESERVED_SLUGS.has(normalized)) {
@@ -1592,7 +1592,7 @@ async function startServer() {
     try {
       const r = await store.redeemReferral(u.uid, String(req.body?.code || ''));
       if ('error' in r) return res.status(r.status).json({ error: r.error });
-      res.json({ success: true, newCoins: r.newCoins, bonus: r.bonus });
+      res.json({ success: true, newCoins: r.newCoins, bonus: r.bonus, referrerName: r.referrerName });
     } catch (e) { console.error('referral redeem failed:', e); res.status(500).json({ error: 'Could not apply the code. Please try again.' }); }
   });
 

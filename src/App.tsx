@@ -32,7 +32,7 @@ const AuthModal = React.lazy(() => import('./components/AuthModal').then(m => ({
 const BarcodePage = React.lazy(() => import('./components/BarcodePage').then(m => ({ default: m.BarcodePage })));
 const PricingPage = React.lazy(() => import('./components/PricingPage').then(m => ({ default: m.PricingPage })));
 const SupportPage = React.lazy(() => import('./components/SupportPage').then(m => ({ default: m.SupportPage })));
-const CoinsModal = React.lazy(() => import('./components/CoinsModal').then(m => ({ default: m.CoinsModal })));
+const RewardsPage = React.lazy(() => import('./components/RewardsPage').then(m => ({ default: m.RewardsPage })));
 import { AIChatModal, AIRoleId } from './components/AIChatModal';
 import { clearAllStoredFiles, deleteFileFromStore, getAllStoredFiles, saveFileToStore, getFileViewerUrl } from './utils/file-store';
 import { 
@@ -298,6 +298,7 @@ function extractFileIdFromUrl(input: string): string | null {
           'home',
           'barcode',
           'pricing',
+          'rewards',
           'support',
           'expired',
           'p/',
@@ -338,6 +339,7 @@ function parseCurrentRoute(): { view: AppViewMode; fileId: string | null } {
     if (cleanPath === 'expired') return { view: 'expired', fileId: null };
     if (cleanPath === 'barcode') return { view: 'barcode', fileId: null };
     if (cleanPath === 'pricing') return { view: 'pricing', fileId: null };
+    if (cleanPath === 'rewards') return { view: 'rewards', fileId: null };
     if (cleanPath === 'support') return { view: 'support', fileId: null };
     if (cleanPath === 'home' || cleanPath === '') return { view: 'home', fileId: null };
   } catch {}
@@ -346,7 +348,7 @@ function parseCurrentRoute(): { view: AppViewMode; fileId: string | null } {
 
 function MainApp() {
   const { user, openAuthModal } = useAuth();
-  const { earnCoins } = useCoins();
+  const { earnCoins, isCoinsModalOpen, consumeCoinsRequest, closeCoinsModal, activeFeaturePrompt } = useCoins();
 
   const initialRoute = parseCurrentRoute();
   const [viewFileId, setViewFileId] = useState<string | null>(initialRoute.fileId);
@@ -510,6 +512,60 @@ function MainApp() {
   }, [savedItems]);
 
   const deletedIdsRef = React.useRef<Set<string>>(new Set());
+
+  // ---- Rewards page (replaces the old coins pop-up) ----
+  const rewardsReturnRef = React.useRef<AppViewMode | null>(null);
+  const prevPromptRef = React.useRef<typeof activeFeaturePrompt>(null);
+
+  // Anything that used to open the coins pop-up now opens the Rewards page and remembers where to return
+  useEffect(() => {
+    if (!isCoinsModalOpen) return;
+    if (currentView !== 'rewards') rewardsReturnRef.current = currentView;
+    consumeCoinsRequest();
+    navigateTo('rewards');
+  }, [isCoinsModalOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // After a feature is unlocked from a prompt, go back to what the person was doing
+  useEffect(() => {
+    const had = prevPromptRef.current;
+    prevPromptRef.current = activeFeaturePrompt;
+    if (had && !activeFeaturePrompt && currentView === 'rewards' && rewardsReturnRef.current) {
+      const back = rewardsReturnRef.current;
+      rewardsReturnRef.current = null;
+      navigateTo(back);
+    }
+  }, [activeFeaturePrompt]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Don't keep a stale "unlock this" prompt once the person leaves the page
+  useEffect(() => {
+    if (currentView !== 'rewards' && activeFeaturePrompt) closeCoinsModal();
+  }, [currentView]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRewardsBack = () => {
+    const back = rewardsReturnRef.current || 'studio';
+    rewardsReturnRef.current = null;
+    closeCoinsModal();
+    navigateTo(back);
+  };
+
+  // ---- Signing out removes the account's QRs and files from this device ----
+  useEffect(() => {
+    const onSignedOut = () => {
+      setSavedItems([]);
+      setUserFiles([]);
+      deletedIdsRef.current = new Set();
+      setConfig((c) => (c.file ? { ...c, file: undefined } : c));
+      try {
+        const p = window.location.pathname;
+        if (p === '/my-codes' || p === '/rewards') {
+          setCurrentView('home');
+          window.history.pushState({}, '', '/');
+        }
+      } catch {}
+    };
+    window.addEventListener('makeqr:signed-out', onSignedOut);
+    return () => window.removeEventListener('makeqr:signed-out', onSignedOut);
+  }, []);
 
   // Always-current copy of the saved list (the save handler can be called twice before React re-renders)
   const savedItemsRef = React.useRef<SavedQR[]>(savedItems);
@@ -1153,6 +1209,10 @@ function MainApp() {
         <React.Suspense fallback={<div className="flex-1 flex items-center justify-center p-12 text-slate-400">Loading...</div>}>
           <PricingPage onGoToStudio={() => navigateTo('studio')} />
         </React.Suspense>
+      ) : currentView === 'rewards' ? (
+        <React.Suspense fallback={<div className="flex-1 flex items-center justify-center p-12 text-slate-400">Loading...</div>}>
+          <RewardsPage onBack={handleRewardsBack} />
+        </React.Suspense>
       ) : currentView === 'support' ? (
         <React.Suspense fallback={<div className="flex-1 flex items-center justify-center p-12 text-slate-400">Loading...</div>}>
           <SupportPage />
@@ -1723,9 +1783,6 @@ export default function App() {
     <AuthProvider>
       <CoinsProvider>
         <MainApp />
-        <React.Suspense fallback={null}>
-          <CoinsModal />
-        </React.Suspense>
         <CoinRewardToast />
         <ReferralPrompt />
       </CoinsProvider>

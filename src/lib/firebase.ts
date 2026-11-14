@@ -1264,3 +1264,18 @@ export function subscribeToQRAnalyticsInFirestore(
 }
 
 
+
+
+/** Live updates of the signed-in user's profile (coins, unlocked features, referral events). */
+export function subscribeToUserProfile(userId: string, onData: (data: Record<string, any>) => void): () => void {
+  try {
+    return onSnapshot(
+      doc(db, 'users', userId),
+      (snap) => { if (snap.exists()) onData(snap.data() as Record<string, any>); },
+      (err) => console.warn('Profile listener note:', err)
+    );
+  } catch (e) {
+    console.warn('Could not start profile listener:', e);
+    return () => {};
+  }
+}

@@ -4,7 +4,8 @@ import {
   syncUserProfile, 
   awardUserCoinsInCloud, 
   unlockFeatureInCloud, 
-  recordGuestTrialUsedInCloud 
+  recordGuestTrialUsedInCloud,
+  subscribeToUserProfile
 } from '../lib/firebase';
 
 export interface PremiumFeatureDef {
@@ -72,6 +73,8 @@ interface CoinsContextType {
   isCoinsModalOpen: boolean;
   openCoinsModal: (feature?: { id: string; name: string; cost: number; description?: string }) => void;
   closeCoinsModal: () => void;
+  /** Clears the "open" request but keeps the feature being unlocked (used when routing to the rewards page). */
+  consumeCoinsRequest: () => void;
   activeFeaturePrompt: { id: string; name: string; cost: number; description?: string } | null;
   coinToast: { amount: number; message: string; timestamp: number } | null;
   clearCoinToast: () => void;
@@ -83,6 +86,8 @@ const GUEST_COINS_STORAGE_KEY = 'makeqr_guest_coins_v1';
 const GUEST_TRIAL_STORAGE_KEY = 'makeqr_guest_trial_used_v1';
 const GUEST_UNLOCKED_STORAGE_KEY = 'makeqr_guest_unlocked_features_v1';
 const REWARDED_EVENTS_STORAGE_KEY = 'makeqr_rewarded_events_v1';
+const SESSION_UID_KEY = 'makeqr_session_uid';
+const SESSION_COINS_KEY = 'makeqr_session_coins';
 
 const CoinsContext = createContext<CoinsContextType | undefined>(undefined);
 
@@ -92,6 +97,11 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Guest Coins default to 20 complimentary coins
   const [coins, setCoins] = useState<number>(() => {
     try {
+      // A signed-in visitor reloading the page: show their last known balance right away
+      if (localStorage.getItem(SESSION_UID_KEY)) {
+        const cached = localStorage.getItem(SESSION_COINS_KEY);
+        if (cached !== null && !isNaN(parseInt(cached, 10))) return Math.max(0, parseInt(cached, 10));
+      }
       const stored = localStorage.getItem(GUEST_COINS_STORAGE_KEY);
       return stored ? Math.max(0, parseInt(stored, 10)) : 20;
     } catch {
@@ -141,6 +151,10 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         if (mounted) {
           try {
             localStorage.setItem(mergeKey, 'true');
+            // Guest coins now belong to the account; don't leave a copy behind for after sign-out
+            localStorage.setItem(GUEST_COINS_STORAGE_KEY, '0');
+            localStorage.setItem(GUEST_UNLOCKED_STORAGE_KEY, '[]');
+            localStorage.setItem(SESSION_COINS_KEY, String(profile.coins));
           } catch {}
 
           setCoins(profile.coins);
@@ -167,6 +181,56 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       mounted = false;
     };
   }, [user]);
+
+  // Live balance: coins won from a friend's referral (or another device) show up without a reload
+  useEffect(() => {
+    if (!user) return;
+    const seenKey = `makeqr_ref_seen_${user.uid}`;
+    return subscribeToUserProfile(user.uid, (data) => {
+      if (typeof data.coins === 'number') {
+        setCoins(Math.max(0, data.coins));
+        try { localStorage.setItem(SESSION_COINS_KEY, String(Math.max(0, data.coins))); } catch {}
+      }
+      if (Array.isArray(data.unlockedFeatures)) setUnlockedFeatures(data.unlockedFeatures);
+      if (data.guestTrialUsed === true) setGuestTrialUsed(true);
+
+      // A friend just joined with this user's code → say who
+      const at = Number(data.lastReferralAt || 0);
+      if (at) {
+        let seen = 0;
+        try { seen = Number(localStorage.getItem(seenKey) || 0); } catch {}
+        if (at > seen) {
+          try { localStorage.setItem(seenKey, String(at)); } catch {}
+          const bonus = Number(data.lastReferralBonus || 0);
+          setCoinToast({
+            amount: bonus,
+            message: `${data.lastReferralName || 'A friend'} joined with your code! +${bonus} coins 🎉`,
+            timestamp: Date.now(),
+          });
+        }
+      }
+    });
+  }, [user?.uid]);
+
+  // Signing out: forget the account's coins and unlocks (the guest balance is restored from storage)
+  useEffect(() => {
+    const onSignedOut = () => {
+      try {
+        const c = localStorage.getItem(GUEST_COINS_STORAGE_KEY);
+        setCoins(c !== null && !isNaN(parseInt(c, 10)) ? Math.max(0, parseInt(c, 10)) : 0);
+        const f = localStorage.getItem(GUEST_UNLOCKED_STORAGE_KEY);
+        setUnlockedFeatures(f ? JSON.parse(f) : []);
+      } catch {
+        setCoins(0);
+        setUnlockedFeatures([]);
+      }
+      setCoinToast(null);
+      setIsCoinsModalOpen(false);
+      setActiveFeaturePrompt(null);
+    };
+    window.addEventListener('makeqr:signed-out', onSignedOut);
+    return () => window.removeEventListener('makeqr:signed-out', onSignedOut);
+  }, []);
 
   // Persist guest state to localStorage
   useEffect(() => {
@@ -319,6 +383,10 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setActiveFeaturePrompt(null);
   };
 
+  const consumeCoinsRequest = () => {
+    setIsCoinsModalOpen(false);
+  };
+
   const clearCoinToast = () => {
     setCoinToast(null);
   };
@@ -342,6 +410,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         isCoinsModalOpen,
         openCoinsModal,
         closeCoinsModal,
+        consumeCoinsRequest,
         activeFeaturePrompt,
         coinToast,
         clearCoinToast,

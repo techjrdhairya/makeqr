@@ -8,6 +8,7 @@ import {
   syncUserProfile,
   syncLocalHistoryToCloud
 } from '../lib/firebase';
+import { clearAllStoredFiles } from '../utils/file-store';
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -24,6 +25,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const SESSION_UID_KEY = 'makeqr_session_uid';
+const CLEANUP_FLAG = 'makeqr_signed_out_cleanup_v2';
+
+/**
+ * Removes everything that belongs to a signed-in account from this browser:
+ * saved QRs, uploaded files, coins and unlocks. Runs on sign-out and once for leftovers from older versions.
+ */
+async function purgeLocalAccountData(resetGuestCoinsTo: number) {
+  try {
+    for (const key of ['makeqr_history_v1', 'qr_brand_studio_history_v1', 'makeqr_saved_codes', 'makeqr_session_uid', 'makeqr_session_coins', 'makeqr_rewarded_events_v1']) {
+      localStorage.removeItem(key);
+    }
+    // uploaded-file backups kept in localStorage
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('makeqr_file_')) localStorage.removeItem(k);
+    }
+    localStorage.setItem('makeqr_guest_coins_v1', String(resetGuestCoinsTo));
+    localStorage.setItem('makeqr_guest_unlocked_features_v1', '[]');
+  } catch { /* storage unavailable */ }
+  try { sessionStorage.removeItem('makeqr_deleted_ids'); } catch { /* ignore */ }
+  try { await clearAllStoredFiles(); } catch { /* ignore */ }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,6 +57,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        let wasSignedIn = false;
+        let firstCleanup = false;
+        try {
+          wasSignedIn = !!localStorage.getItem(SESSION_UID_KEY);
+          firstCleanup = localStorage.getItem(CLEANUP_FLAG) !== 'done';
+        } catch { /* ignore */ }
+        if (wasSignedIn || firstCleanup) {
+          // Signed out: guests start from 0 (their coins moved into the account at sign-in).
+          // First run after this update: clear leftovers, keeping at most the normal 20 guest coins.
+          let guestCoins = 0;
+          if (!wasSignedIn) {
+            try { guestCoins = Math.min(20, Math.max(0, parseInt(localStorage.getItem('makeqr_guest_coins_v1') || '20', 10) || 0)); } catch { guestCoins = 20; }
+          }
+          await purgeLocalAccountData(guestCoins);
+          try { localStorage.setItem(CLEANUP_FLAG, 'done'); } catch { /* ignore */ }
+          window.dispatchEvent(new Event('makeqr:signed-out'));
+        }
+      } else {
+        try { localStorage.setItem(SESSION_UID_KEY, currentUser.uid); } catch { /* ignore */ }
+      }
       setUser(currentUser);
       if (currentUser) {
         try {

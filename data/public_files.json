@@ -1,0 +1,44 @@
+[
+  {
+    "id": "f_1788604068638_qhhkg",
+    "name": "MakeQR-Media-Presentation.mp4",
+    "type": "video/mp4",
+    "size": 524288,
+    "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "previewUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
+    "rawUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "title": "Verified MakeQR Media Presentation",
+    "description": "High definition cloud-hosted presentation video and document showcase for MakeQR dynamic link system.",
+    "author": "MakeQR Studio",
+    "createdAt": 1788604068638,
+    "public": true
+  },
+  {
+    "id": "test_expired_file_123",
+    "name": "sample.txt",
+    "type": "text/plain",
+    "size": 0,
+    "url": "data:text/plain;base64,SGVsbG8gV29ybGQ=",
+    "rawUrl": "/api/files/test_expired_file_123/raw",
+    "title": "sample.txt",
+    "customSlug": "expired-menu-pdf",
+    "expirationDate": "2021-06-01T00:00:00Z",
+    "expirationMessage": "This summer menu has expired. Please check our website for the new menu.",
+    "createdAt": 1790252496505,
+    "public": true
+  },
+  {
+    "id": "test_expired_file_123",
+    "name": "sample.txt",
+    "type": "text/plain",
+    "size": 0,
+    "url": "data:text/plain;base64,SGVsbG8gV29ybGQ=",
+    "rawUrl": "/api/files/test_expired_file_123/raw",
+    "title": "sample.txt",
+    "customSlug": "expired-menu-pdf",
+    "expirationDate": "2021-06-01T00:00:00Z",
+    "expirationMessage": "This summer menu has expired. Please check our website for the new menu.",
+    "createdAt": 1790252496505,
+    "public": true
+  }
+]

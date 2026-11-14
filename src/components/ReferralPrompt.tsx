@@ -37,7 +37,7 @@ export const ReferralPrompt: React.FC = () => {
     setBusy(true); setErr('');
     const r = await redeemReferralCode(code);
     setBusy(false);
-    if (r.ok) { clearPendingRef(); setCoinsFromServer(r.newCoins ?? 0, r.bonus ?? bonus, `Referral bonus! +${r.bonus ?? bonus} coins`); finish(); }
+    if (r.ok) { clearPendingRef(); setCoinsFromServer(r.newCoins ?? 0, r.bonus ?? bonus, `Referral bonus from ${r.referrerName || 'your friend'}! +${r.bonus ?? bonus} coins`); finish(); }
     else setErr(r.error || 'Could not apply that code.');
   };
 
@@ -56,7 +56,7 @@ export const ReferralPrompt: React.FC = () => {
           <button type="button" onClick={finish} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-700 cursor-pointer dark:border-slate-700 dark:text-slate-200">Skip</button>
           <button type="button" id="referral-prompt-apply" onClick={apply} disabled={busy || code.length !== 8} className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-extrabold text-white disabled:opacity-50 cursor-pointer">{busy ? 'Applying…' : `Apply +${bonus} coins`}</button>
         </div>
-        <p className="mt-2 text-center text-[11px] text-slate-400">You can also add it later from the coins window.</p>
+        <p className="mt-2 text-center text-[11px] text-slate-400">You can also add it later from the Rewards page.</p>
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
 import React from 'react';
+<<<<<<< HEAD
 import { ReferralPanel } from './ReferralPanel';
+=======
+>>>>>>> 304083f0fe2e78e14b7df5f9b8e4bbb2bead3b70
 import { 
   Coins, 
   Sparkles, 
@@ -190,8 +193,11 @@ export const CoinsModal: React.FC = () => {
             </div>
           )}
 
+<<<<<<< HEAD
           <ReferralPanel />
 
+=======
+>>>>>>> 304083f0fe2e78e14b7df5f9b8e4bbb2bead3b70
           {/* How to Earn Coins Section */}
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-200/80 dark:border-slate-800">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">

@@ -7,7 +7,7 @@ import { fetchReferral, redeemReferralCode, referralLink, getPendingRef, clearPe
 /** "Refer & earn": your code, share buttons, stats, and an optional box to add a friend's code. */
 export const ReferralPanel: React.FC = () => {
   const { user, openAuthModal } = useAuth();
-  const { setCoinsFromServer } = useCoins();
+  const { setCoinsFromServer, coins } = useCoins();
   const [info, setInfo] = useState<ReferralInfo | null>(null);
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
   const [input, setInput] = useState(() => getPendingRef());
@@ -17,9 +17,11 @@ export const ReferralPanel: React.FC = () => {
   useEffect(() => {
     let live = true;
     if (!user) { setInfo(null); return; }
-    fetchReferral().then((i) => live && setInfo(i));
-    return () => { live = false; };
-  }, [user?.uid]);
+    const load = () => fetchReferral().then((i) => live && setInfo(i));
+    load();
+    const t = setInterval(load, 20000); // pick up new friends while the page is open
+    return () => { live = false; clearInterval(t); };
+  }, [user?.uid, coins]);
 
   const bonus = info?.bonus ?? 25;
 
@@ -50,9 +52,10 @@ export const ReferralPanel: React.FC = () => {
     setBusy(false);
     if (r.ok) {
       clearPendingRef();
-      setCoinsFromServer(r.newCoins ?? 0, r.bonus ?? bonus, `Referral bonus! +${r.bonus ?? bonus} coins`);
-      setInfo({ ...info, redeemed: true, canRedeem: false });
-      setMsg({ ok: true, text: `Code applied. You and your friend each got ${r.bonus ?? bonus} coins.` });
+      const who = r.referrerName || 'your friend';
+      setCoinsFromServer(r.newCoins ?? 0, r.bonus ?? bonus, `Referral bonus from ${who}! +${r.bonus ?? bonus} coins`);
+      setInfo({ ...info, redeemed: true, canRedeem: false, referredByName: r.referrerName });
+      setMsg({ ok: true, text: `Code applied. You and ${who} each got ${r.bonus ?? bonus} coins.` });
     } else setMsg({ ok: false, text: r.error || 'Could not apply that code.' });
   };
 
@@ -71,6 +74,23 @@ export const ReferralPanel: React.FC = () => {
         <button type="button" onClick={() => copy('link')} className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-700 cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">{copied === 'link' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}Copy link</button>
       </div>
       <p className="text-[11px] text-slate-500 dark:text-slate-400">{info.count || 0} of {info.cap} friends joined · {info.earned || 0} coins earned</p>
+      {info.friends && info.friends.length > 0 && (
+        <div className="rounded-xl border border-indigo-100 bg-white p-2 dark:border-indigo-900/60 dark:bg-slate-900">
+          <p className="px-1 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Friends who joined</p>
+          <ul className="max-h-56 divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800">
+            {info.friends.map((f, i) => (
+              <li key={`${f.at}-${i}`} className="flex items-center gap-2.5 px-1 py-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-black text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{(f.name || '?').trim().charAt(0).toUpperCase()}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{f.name}</span>
+                  <span className="block text-[11px] text-slate-500 dark:text-slate-400">{f.at ? new Date(f.at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
+                </span>
+                <span className="shrink-0 rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-extrabold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">+{f.bonus} 🪙</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {info.canRedeem ? (
         <div className="border-t border-indigo-100 pt-3 dark:border-indigo-900/60">
@@ -82,7 +102,7 @@ export const ReferralPanel: React.FC = () => {
           <p className="mt-1 text-[11px] text-slate-400">Codes can be added within {info.windowDays} days of creating your account, once.</p>
         </div>
       ) : info.redeemed ? (
-        <p className="flex items-center gap-1.5 border-t border-indigo-100 pt-3 text-xs font-semibold text-emerald-700 dark:border-indigo-900/60 dark:text-emerald-300"><Check className="h-3.5 w-3.5" />You joined with a friend's code.</p>
+        <p className="flex items-center gap-1.5 border-t border-indigo-100 pt-3 text-xs font-semibold text-emerald-700 dark:border-indigo-900/60 dark:text-emerald-300"><Check className="h-3.5 w-3.5" />{info.referredByName ? `You joined with ${info.referredByName}'s code.` : "You joined with a friend's code."}</p>
       ) : null}
       {msg && <p className={`text-xs ${msg.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600'}`}>{msg.text}</p>}
     </div>

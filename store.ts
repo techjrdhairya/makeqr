@@ -265,8 +265,28 @@ export async function getReferralInfo(uid: string) {
   }
   if (!data?.code) throw new Error('could-not-create-code');
   const redeemed = Boolean(data.referredBy);
+
+  // Friends who joined with this user's code (newest first). Sorted in memory, so no composite index is needed.
+  const friends: { name: string; at: number; bonus: number }[] = [];
+  try {
+    const logSnap = await database.collection('srv_referral_log').where('referrerUid', '==', uid).limit(100).get();
+    const rows = logSnap.docs.map((d) => d.data());
+    const names = await Promise.all(rows.map(async (r) => {
+      if (r.refereeName) return String(r.refereeName);
+      try { return String((await database.collection('users').doc(r.refereeUid).get()).data()?.displayName || 'A friend'); } catch { return 'A friend'; }
+    }));
+    rows.forEach((r, i) => friends.push({ name: names[i], at: Number(r.at) || 0, bonus: Number(r.bonus) || REFERRAL_BONUS }));
+    friends.sort((a, b) => b.at - a.at);
+  } catch (e) { console.warn('[referral] could not list friends:', e); }
+
+  let referredByName = data.referredByName as string | undefined;
+  if (redeemed && !referredByName) {
+    try { referredByName = String((await database.collection('users').doc(data.referredBy).get()).data()?.displayName || 'A friend'); } catch { referredByName = 'A friend'; }
+  }
   return {
     enabled: true,
+    friends: friends.slice(0, 50),
+    referredByName: referredByName || undefined,
     code: data.code as string,
     count: (data.referralsCount as number) || 0,
     earned: (data.referralEarned as number) || 0,
@@ -278,7 +298,7 @@ export async function getReferralInfo(uid: string) {
   };
 }
 
-type RedeemResult = { ok: true; newCoins: number; bonus: number } | { ok: false; status: number; error: string };
+type RedeemResult = { ok: true; newCoins: number; bonus: number; referrerName: string } | { ok: false; status: number; error: string };
 
 export async function redeemReferral(uid: string, raw: string): Promise<RedeemResult> {
   if (!db) throw new Error('cloud-disabled');
@@ -304,12 +324,15 @@ export async function redeemReferral(uid: string, raw: string): Promise<RedeemRe
     if ((rr.data()?.referralsCount || 0) >= REFERRAL_CAP) return { ok: false, status: 409, error: 'This code has reached its referral limit.' };
     if (!meP.exists) return { ok: false, status: 409, error: 'Your account is still being set up. Try again in a few seconds.' };
     if (!rrP.exists) return { ok: false, status: 409, error: 'The owner of this code has not finished setting up their account.' };
-    t.set(meRef, { referredBy: referrerUid, referredByCode: code, redeemedAt: Date.now() }, { merge: true });
+    const referrerName = String(rrP.data()?.displayName || 'A friend');
+    const refereeName = String(meP.data()?.displayName || 'A friend');
+    t.set(meRef, { referredBy: referrerUid, referredByCode: code, referredByName: referrerName, redeemedAt: Date.now() }, { merge: true });
     t.set(refRef, { referralsCount: FieldValue.increment(1), referralEarned: FieldValue.increment(REFERRAL_BONUS) }, { merge: true });
     t.update(meProfile, { coins: FieldValue.increment(REFERRAL_BONUS), updatedAt: new Date().toISOString() });
-    t.update(refProfile, { coins: FieldValue.increment(REFERRAL_BONUS), updatedAt: new Date().toISOString() });
-    t.set(database.collection('srv_referral_log').doc(), { referrerUid, refereeUid: uid, code, bonus: REFERRAL_BONUS, at: Date.now() });
+    // lastReferral* lets the referrer's open app show "<friend> joined" live
+    t.update(refProfile, { coins: FieldValue.increment(REFERRAL_BONUS), lastReferralName: refereeName, lastReferralAt: Date.now(), lastReferralBonus: REFERRAL_BONUS, updatedAt: new Date().toISOString() });
+    t.set(database.collection('srv_referral_log').doc(), { referrerUid, refereeUid: uid, code, bonus: REFERRAL_BONUS, at: Date.now(), refereeName, referrerName });
     const base = typeof meP.data()?.coins === 'number' ? (meP.data()!.coins as number) : 50;
-    return { ok: true, newCoins: base + REFERRAL_BONUS, bonus: REFERRAL_BONUS };
+    return { ok: true, newCoins: base + REFERRAL_BONUS, bonus: REFERRAL_BONUS, referrerName };
   });
 }
