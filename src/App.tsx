@@ -694,6 +694,7 @@ function MainApp() {
     setConfig((prev) => ({
       ...prev,
       contentType: type,
+      url: type === 'url' && prev.url === DEFAULT_CONFIG.url ? '' : prev.url,
       page: type === 'page' ? createPage(pageKind ?? 'card') : prev.page,
       quicklink: type === 'quicklink'
         ? { kind: quickKind ?? prev.quicklink?.kind ?? 'whatsapp', value: '', message: '', amount: '' }

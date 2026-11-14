@@ -254,7 +254,7 @@ export const PublicFileView: React.FC<PublicFileViewProps> = ({
               onClick={onGoToStudio}
               className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
             >
-              Open Studio
+              Create a QR
             </button>
           </div>
         </div>

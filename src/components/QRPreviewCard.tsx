@@ -543,7 +543,7 @@ export const QRPreviewCard: React.FC<QRPreviewCardProps> = ({
                   {config.vcard.title || 'Brand Director'}
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                  {config.vcard.company || 'Studio Studio'}
+                  {config.vcard.company || 'Your Company'}
                 </p>
                 <p className="text-[10px] text-slate-400 pt-1 font-mono truncate">
                   {config.vcard.phone || '+1 (555) 019-2831'}

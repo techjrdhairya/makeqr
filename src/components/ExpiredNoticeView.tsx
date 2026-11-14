@@ -85,7 +85,7 @@ export const ExpiredNoticeView: React.FC<ExpiredNoticeViewProps> = ({
               className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-800/40 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all cursor-pointer"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Return to MakeQR Studio</span>
+              <span>Back to MakeQR</span>
             </button>
           )}
         </div>

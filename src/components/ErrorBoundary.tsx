@@ -77,7 +77,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-all cursor-pointer"
               >
                 <Home className="h-4 w-4" />
-                Return to Studio
+                Back to MakeQR
               </button>
             </div>
           </div>

@@ -155,7 +155,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               onClick={onContinue}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-indigo-600 active:scale-[0.98] transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer"
             >
-              <span>Continue to Studio</span>
+              <span>Create a QR</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -214,7 +214,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               onClick={onContinue}
               className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 cursor-pointer"
             >
-              <span>Open Studio</span>
+              <span>Create a QR</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>

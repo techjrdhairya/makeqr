@@ -26,7 +26,7 @@ export const DynamicQRBanner: React.FC<DynamicQRBannerProps> = ({ config, onChan
     isDynamic: false,
     dynamicId: '',
     customSlug: '',
-    targetUrl: config.url || 'https://github.com',
+    targetUrl: config.url || 'https://example.com',
     scanCount: 0,
   };
 

@@ -18,7 +18,9 @@ import {
   Check,
   Copy
 } from 'lucide-react';
-import { SavedQR, QRAnalyticsData, QRScanLocation, QRScanEvent } from '../types';
+import { SavedQR, QRAnalyticsData, QRScanLocation, QRScanEvent, QRConfig } from '../types';
+import { getConfigPayload } from '../utils/qr-generator';
+import { DEFAULT_CONFIG } from '../utils/qr-constants';
 import { fetchQRAnalytics, isTrackable } from '../utils/analytics';
 import { AnalyticsCharts } from './AnalyticsCharts';
 
@@ -93,15 +95,10 @@ export const QRAnalyticsModal: React.FC<QRAnalyticsModalProps> = ({
       const f = qr.config.file;
       return f.customSlug ? `${window.location.origin}/${f.customSlug}` : `${window.location.origin}/?file=${encodeURIComponent(f.id)}`;
     }
-    if (qr.config?.dynamic?.customSlug) {
-      return `${window.location.origin}/${qr.config.dynamic.customSlug}`;
-    }
-    if (qr.config?.file?.id) {
-      return `${window.location.origin}/?file=${qr.config.file.id}`;
-    }
-    if (qr.config?.url) {
-      return qr.config.url;
-    }
+    try {
+      const link = getConfigPayload({ ...DEFAULT_CONFIG, ...qr.config } as QRConfig);
+      if (link) return link;
+    } catch { /* fall through */ }
     return `${window.location.origin}/?qr=${encodeURIComponent(qr.id)}`;
   };
 

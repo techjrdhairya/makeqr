@@ -131,7 +131,7 @@ export const FileViewerModal: React.FC<FileViewerModalProps> = ({
               onClick={handleClose}
               className="mt-6 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
             >
-              <span>Return to MakeQR Studio</span>
+              <span>Back to MakeQR</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>

@@ -5,10 +5,11 @@ import { generatePayloadString } from './vcard-wifi-helpers';
 import { BUILTIN_LOGOS } from './qr-constants';
 
 /**
- * Builds standard QRCodeStyling options from our QRConfig
+ * The exact text/URL a QR code encodes. Use this everywhere a link or content is shown or copied,
+ * so it can never disagree with what the QR code really contains.
  */
-export function buildQRCodeStylingOptions(config: QRConfig, size: number = 320): Options {
-  const payload = generatePayloadString(config.contentType, {
+export function getConfigPayload(config: QRConfig): string {
+  return generatePayloadString(config.contentType, {
     url: config.url,
     text: config.text,
     file: config.file,
@@ -27,6 +28,13 @@ export function buildQRCodeStylingOptions(config: QRConfig, size: number = 320):
     expirationDate: config.expirationDate,
     expirationMessage: config.expirationMessage,
   });
+}
+
+/**
+ * Builds standard QRCodeStyling options from our QRConfig
+ */
+export function buildQRCodeStylingOptions(config: QRConfig, size: number = 320): Options {
+  const payload = getConfigPayload(config);
 
   // Resolve logo image
   let logoUrl: string | undefined = undefined;

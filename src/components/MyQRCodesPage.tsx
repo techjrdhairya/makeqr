@@ -18,7 +18,9 @@ import {
   Printer,
   TrendingUp
 } from 'lucide-react';
-import { SavedQR, FileData } from '../types';
+import { SavedQR, FileData, QRConfig } from '../types';
+import { getConfigPayload } from '../utils/qr-generator';
+import { DEFAULT_CONFIG } from '../utils/qr-constants';
 import { QRAnalyticsModal } from './QRAnalyticsModal';
 import { fetchQRAnalytics, isTrackable } from '../utils/analytics';
 import { OrganiseModal, CampaignPanel, FolderTagChips } from './OrganisePanels';
@@ -112,19 +114,10 @@ export const MyQRCodesPage: React.FC<MyQRCodesPageProps> = ({
   };
 
   const handleCopyLink = (qr: SavedQR) => {
+    // Copy exactly what the QR code encodes (never a leftover default such as the URL tab's placeholder)
     let url = '';
-    if (qr.config?.contentType === 'file' && qr.config?.file) {
-      const f = qr.config.file;
-      url = f.customSlug ? `${window.location.origin}/${f.customSlug}` : `${window.location.origin}/?file=${encodeURIComponent(f.id)}`;
-    } else if (qr.config?.dynamic?.customSlug) {
-      url = `${window.location.origin}/${qr.config.dynamic.customSlug}`;
-    } else if (qr.config?.file?.id) {
-      url = `${window.location.origin}/?file=${qr.config.file.id}`;
-    } else if (qr.config?.url) {
-      url = qr.config.url;
-    } else {
-      url = qr.summaryText || window.location.origin;
-    }
+    try { url = getConfigPayload({ ...DEFAULT_CONFIG, ...qr.config } as QRConfig); } catch { url = ''; }
+    if (!url) url = qr.summaryText || window.location.origin;
 
     navigator.clipboard.writeText(url).then(() => {
       setCopiedId(qr.id);
@@ -445,7 +438,7 @@ export const MyQRCodesPage: React.FC<MyQRCodesPageProps> = ({
                         type="button"
                         onClick={() => handleCopyLink(item)}
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-colors cursor-pointer"
-                        title="Copy QR destination link"
+                        title="Copy what this QR opens or contains"
                       >
                         {copiedId === item.id ? (
                           <>
