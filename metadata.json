@@ -1,0 +1,10 @@
+{
+  "name": "MakeQR",
+  "description": "Create customizable QR codes for links, text, file uploads, Wi-Fi, and contacts with custom colors, logos, eye shapes, and branded frames.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
