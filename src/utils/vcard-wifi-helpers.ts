@@ -320,7 +320,8 @@ export function generatePayloadString(
   // A leftover generic dynamic link (e.g. from the URL tab, pointing at github.com)
   // must never override them.
   // Check if Dynamic QR is enabled
-  if (type !== 'file' && values.dynamic?.isDynamic) {
+  const staleExpiryRoute = !!values.dynamic && !values.dynamic.customSlug && /^exp_/.test(values.dynamic.dynamicId || '') && !values.expirationDate;
+  if (type !== 'file' && values.dynamic?.isDynamic && !staleExpiryRoute) {
     const slug = values.dynamic.customSlug || values.dynamic.dynamicId;
     if (slug) {
       return `${window.location.origin}/${slug}`;

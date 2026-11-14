@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CoinsProvider, useCoins } from './context/CoinsContext';
 import { CoinRewardToast } from './components/CoinRewardToast';
 import { QRConfig, SavedQR, ContentType, FileData } from './types';
+import { getConfigPayload } from './utils/qr-generator';
 import { DEFAULT_CONFIG } from './utils/qr-constants';
 
 const HomePage = React.lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
@@ -40,7 +41,9 @@ import {
   deleteQRCodeFromCloud, 
   subscribeToUserQRCodes,
   subscribeToUserFiles,
-  saveDynamicLinkToFirestore
+  saveDynamicLinkToFirestore,
+  getPendingDeletes,
+  flushPendingDeletes
 } from './lib/firebase';
 import confetti from 'canvas-confetti';
 import { 
@@ -512,6 +515,7 @@ function MainApp() {
   }, [savedItems]);
 
   const deletedIdsRef = React.useRef<Set<string>>(new Set());
+  const editingIdRef = React.useRef<string | null>(null);
 
   // ---- Rewards page (replaces the old coins pop-up) ----
   const rewardsReturnRef = React.useRef<AppViewMode | null>(null);
@@ -626,10 +630,12 @@ function MainApp() {
   useEffect(() => {
     if (!user) return;
 
+    flushPendingDeletes(user.uid).catch(() => {});
     // Listen to real-time cloud items
     const unsubscribe = subscribeToUserQRCodes(user.uid, (cloudItems) => {
       // Exclude any IDs deleted in this session
-      const validCloudItems = cloudItems.filter((c) => !deletedIdsRef.current.has(c.id));
+      const pendingDel = new Set(getPendingDeletes(user.uid));
+      const validCloudItems = cloudItems.filter((c) => !deletedIdsRef.current.has(c.id) && !pendingDel.has(c.id));
 
       setSavedItems((prevLocal) => {
         const filteredLocal = prevLocal.filter((p) => !deletedIdsRef.current.has(p.id));
@@ -732,7 +738,10 @@ function MainApp() {
 
     // Same QR already saved (e.g. download then Save)? Update that entry in place instead of adding a copy.
     const currentKey = qrIdentityKey(config);
-    const existingItem = savedItemsRef.current.find((i) => qrIdentityKey(i.config) === currentKey);
+    const existingItem =
+      (editingIdRef.current && savedItemsRef.current.find((i) => i.id === editingIdRef.current)) ||
+      savedItemsRef.current.find((i) => qrIdentityKey(i.config) === currentKey);
+    if (existingItem) editingIdRef.current = existingItem.id;
 
     const newItem: SavedQR = {
       id: existingItem?.id || `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
@@ -811,7 +820,10 @@ function MainApp() {
       }
     } else if (config.dynamic?.isDynamic && (config.dynamic.customSlug || config.dynamic.dynamicId)) {
       const slug = (config.dynamic.customSlug || config.dynamic.dynamicId)!.trim();
-      const dest = (config.url || config.dynamic.targetUrl || 'https://example.com').trim();
+      const dest = (config.contentType === 'url'
+        ? (config.url || config.dynamic.targetUrl || 'https://example.com')
+        : getConfigPayload({ ...config, dynamic: { ...config.dynamic, isDynamic: false }, expirationDate: null } as QRConfig)
+      ).trim();
       fetch('/api/dynamic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -924,6 +936,7 @@ function MainApp() {
   };
 
   const handleStartNew = () => {
+    editingIdRef.current = null;
     setConfig(DEFAULT_CONFIG);
     setWizardStep(2);
     setViewFileId(null);
@@ -953,6 +966,7 @@ function MainApp() {
   };
 
   const handleLoadItem = (item: SavedQR) => {
+    editingIdRef.current = item.id;
     setConfig({ ...DEFAULT_CONFIG, ...item.config, quicklink: item.config.quicklink ?? DEFAULT_QUICKLINK });
     setWizardStep(3);
     setCurrentView('studio');
@@ -964,6 +978,7 @@ function MainApp() {
   const handleDeleteItem = async (id: string) => {
     // 1. Mark as deleted in session immediately to block real-time re-insertion
     deletedIdsRef.current.add(id);
+    if (editingIdRef.current === id) editingIdRef.current = null;
     try {
       sessionStorage.setItem('makeqr_deleted_ids', JSON.stringify(Array.from(deletedIdsRef.current)));
     } catch {}

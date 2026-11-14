@@ -125,6 +125,8 @@ export const ExpirationSettings: React.FC<ExpirationSettingsProps> = ({
           ? {
               ...config.dynamic,
               expirationDate: null,
+              // Routing that was only switched on for the expiry goes away with it
+              ...(!config.dynamic.customSlug && /^exp_/.test(config.dynamic.dynamicId || '') ? { isDynamic: false } : {}),
             }
           : undefined,
       });

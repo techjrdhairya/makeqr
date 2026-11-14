@@ -388,9 +388,12 @@ export async function saveQRCodeToCloud(qr: SavedQR, userId?: string): Promise<b
 
   let success = false;
   try {
+    // Replace config/name/etc. fully (merge:true kept stale nested keys such as a removed expiry),
+    // but never overwrite scan counters that the scan tracker owns.
+    const fields = Object.keys(payload).filter((k) => k !== 'scanCount' && k !== 'lastScannedAt');
     await Promise.all([
-      setDoc(userSubRef, payload, { merge: true }),
-      setDoc(rootQrRef, payload, { merge: true }),
+      setDoc(userSubRef, payload, { mergeFields: fields }),
+      setDoc(rootQrRef, payload, { mergeFields: fields }),
     ]);
     console.log(`[Firestore] Successfully saved QR "${qr.name}" (${qr.id}) to Firestore`);
     success = true;
@@ -428,28 +431,42 @@ export async function saveQRCodeToCloud(qr: SavedQR, userId?: string): Promise<b
   return success;
 }
 
+const PENDING_DELETES_KEY = 'makeqr_pending_deletes_v1';
+export function getPendingDeletes(uid: string): string[] {
+  try { return (JSON.parse(localStorage.getItem(PENDING_DELETES_KEY) || '{}')[uid] as string[]) || []; } catch { return []; }
+}
+function setPendingDeletes(uid: string, ids: string[]) {
+  try {
+    const all = JSON.parse(localStorage.getItem(PENDING_DELETES_KEY) || '{}');
+    all[uid] = Array.from(new Set(ids));
+    if (!all[uid].length) delete all[uid];
+    localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+async function deleteQRDocs(finalUid: string, qrId: string): Promise<boolean> {
+  let ok = true;
+  for (const ref of [doc(db, 'users', finalUid, 'qrcodes', qrId), doc(db, 'qrcodes', qrId)]) {
+    try { await deleteDoc(ref); } catch (err) { console.warn('QR delete failed:', err); ok = false; }
+  }
+  return ok;
+}
+
 export async function deleteQRCodeFromCloud(qrId: string, userId?: string): Promise<boolean> {
   const finalUid = userId || auth.currentUser?.uid;
   if (!finalUid || !qrId) return false;
+  // Remember the delete first, so it is retried (and the QR stays hidden) until the cloud confirms it
+  setPendingDeletes(finalUid, [...getPendingDeletes(finalUid), qrId]);
+  let ok = await deleteQRDocs(finalUid, qrId);
+  if (!ok) ok = await deleteQRDocs(finalUid, qrId);
+  if (ok) setPendingDeletes(finalUid, getPendingDeletes(finalUid).filter((x) => x !== qrId));
+  return ok;
+}
 
-  let success = false;
-  try {
-    const userSubRef = doc(db, 'users', finalUid, 'qrcodes', qrId);
-    await deleteDoc(userSubRef);
-    success = true;
-  } catch (err) {
-    console.warn('Failed deleting from user subcollection:', err);
+export async function flushPendingDeletes(uid: string): Promise<void> {
+  for (const id of getPendingDeletes(uid)) {
+    if (await deleteQRDocs(uid, id)) setPendingDeletes(uid, getPendingDeletes(uid).filter((x) => x !== id));
   }
-
-  try {
-    const rootQrRef = doc(db, 'qrcodes', qrId);
-    await deleteDoc(rootQrRef);
-    success = true;
-  } catch (err) {
-    console.warn('Failed deleting from root qrcodes:', err);
-  }
-
-  return success;
 }
 
 export function subscribeToUserQRCodes(
@@ -475,8 +492,12 @@ export function subscribeToUserQRCodes(
           previewThumbnail: data.previewThumbnail || '',
           contentType: data.contentType || 'url',
           summaryText: data.summaryText || '',
+          folder: data.folder ?? data.config?.folder,
+          tags: data.tags ?? data.config?.tags,
+          scanCount: typeof data.scanCount === 'number' ? data.scanCount : undefined,
+          lastScannedAt: typeof data.lastScannedAt === 'number' ? data.lastScannedAt : undefined,
           config: data.config,
-        };
+        } as SavedQR;
       });
       onData(items);
     },

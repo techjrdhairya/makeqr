@@ -62,7 +62,13 @@ export const MyQRCodesPage: React.FC<MyQRCodesPageProps> = ({
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const folders = Array.from(new Set(savedItems.map((i) => i.folder).filter(Boolean) as string[])).sort();
+  const folderOf = (i: SavedQR) => i.folder || (i.config as any)?.folder || undefined;
+  const isExpiredQR = (i: SavedQR) => {
+    const d = (i.config as any)?.expirationDate;
+    const t = d ? new Date(d).getTime() : NaN;
+    return !isNaN(t) && Date.now() > t;
+  };
+  const folders = Array.from(new Set(savedItems.map(folderOf).filter(Boolean) as string[])).sort();
   const allTags = Array.from(new Set(savedItems.flatMap((i) => i.tags || []))).sort();
   const toggleSelected = (id: string) => setSelectedIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const printSelected = async () => {
@@ -137,7 +143,7 @@ export const MyQRCodesPage: React.FC<MyQRCodesPageProps> = ({
     const matchesSearch = (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.summaryText || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || (item.contentType === filterType || (filterType === 'url' && item.contentType === 'quicklink'));
-    const matchesFolder = folderFilter === 'all' || (folderFilter === '__none' ? !item.folder : item.folder === folderFilter);
+    const matchesFolder = folderFilter === 'all' || (folderFilter === '__none' ? !folderOf(item) : folderOf(item) === folderFilter);
     const matchesTag = !tagFilter || (item.tags || []).includes(tagFilter);
     return matchesSearch && matchesType && matchesFolder && matchesTag;
   });
@@ -360,6 +366,11 @@ export const MyQRCodesPage: React.FC<MyQRCodesPageProps> = ({
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                               {item.contentType}
                             </span>
+                            {isExpiredQR(item) && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-50 dark:bg-red-950/70 text-red-600 dark:text-red-300 border border-red-300 dark:border-red-800 text-[10px] font-bold uppercase" title="This QR has expired and now shows an expired notice">
+                                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />Expired
+                              </span>
+                            )}
                             {scanCounts[item.id] !== undefined && (
                               <button
                                 type="button"
@@ -388,7 +399,7 @@ export const MyQRCodesPage: React.FC<MyQRCodesPageProps> = ({
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 line-clamp-2 break-all" title={item.summaryText}>
                           {item.summaryText || 'No destination text'}
                         </p>
-                        <FolderTagChips folder={item.folder} tags={item.tags} />
+                        <FolderTagChips folder={folderOf(item)} tags={item.tags || (item.config as any)?.tags} />
                       </div>
                     </div>
                   </div>
