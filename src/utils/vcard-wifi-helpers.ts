@@ -276,7 +276,7 @@ export function generateSocialString(social: SocialData): string {
       n: social.displayName,
       b: social.bio,
       t: social.theme,
-      l: social.links.map((link) => ({ p: link.platform, l: link.label, u: link.url })),
+      l: social.links.filter((link) => (link.url || '').replace(/^https?:\/\//i, '').trim()).map((link) => ({ p: link.platform, l: link.label, u: link.url })),
     };
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     return `${window.location.origin}/?bio=${b64}`;

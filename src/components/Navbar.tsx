@@ -24,7 +24,7 @@ import { MakeQRLogo } from './MakeQRLogo';
 import { useAuth } from '../context/AuthContext';
 import { useCoins } from '../context/CoinsContext';
 
-export type AppViewMode = 'home' | 'choose-type' | 'studio' | 'my-codes' | 'file-view' | 'expired' | 'barcode' | 'pricing' | 'support' | 'page-view' | 'rewards';
+export type AppViewMode = 'home' | 'choose-type' | 'studio' | 'my-codes' | 'file-view' | 'expired' | 'barcode' | 'pricing' | 'support' | 'page-view' | 'bio-view' | 'rewards';
 
 interface NavbarProps {
   currentView: AppViewMode;

@@ -22,6 +22,7 @@ import { DEFAULT_CONFIG } from './utils/qr-constants';
 const HomePage = React.lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
 const ChooseTypePage = React.lazy(() => import('./components/ChooseTypePage').then(m => ({ default: m.ChooseTypePage })));
 const MyQRCodesPage = React.lazy(() => import('./components/MyQRCodesPage').then(m => ({ default: m.MyQRCodesPage })));
+const BioPublicView = React.lazy(() => import('./components/BioPublicView').then(m => ({ default: m.BioPublicView })));
 const PagePublicView = React.lazy(() => import('./components/PagePublicView').then(m => ({ default: m.PagePublicView })));
 const PublicFileView = React.lazy(() => import('./components/PublicFileView').then(m => ({ default: m.PublicFileView })));
 const ExpiredNoticeView = React.lazy(() => import('./components/ExpiredNoticeView').then(m => ({ default: m.ExpiredNoticeView })));
@@ -324,6 +325,8 @@ function extractFileIdFromUrl(input: string): string | null {
 
 function parseCurrentRoute(): { view: AppViewMode; fileId: string | null } {
   try {
+    const bioParam = new URLSearchParams(window.location.search).get('bio');
+    if (bioParam) return { view: 'bio-view', fileId: null };
     const fileId = extractFileIdFromUrl(window.location.href);
     if (fileId) {
       return { view: 'file-view', fileId };
@@ -1154,12 +1157,13 @@ function MainApp() {
       case 'email': return Boolean(config.email?.email?.trim());
       case 'phone': return Boolean(config.phone?.trim());
       case 'wifi': return Boolean(config.wifi?.ssid?.trim());
+      case 'social': return Boolean(config.social?.displayName?.trim()) && (config.social?.links || []).some((l) => (l.url || '').replace(/^https?:\/\//i, '').trim());
       default: return true;
     }
   })();
 
   // Shared file pages are standalone: no studio navbar / footer / floating widgets
-  const isStandaloneView = currentView === 'file-view' || currentView === 'page-view';
+  const isStandaloneView = currentView === 'file-view' || currentView === 'page-view' || currentView === 'bio-view';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col transition-colors duration-200">
@@ -1249,6 +1253,10 @@ function MainApp() {
             onOpenAuthModal={openAuthModal}
             onUpdateMeta={handleUpdateMeta}
           />
+        </React.Suspense>
+      ) : currentView === 'bio-view' ? (
+        <React.Suspense fallback={<div className="flex-1 flex items-center justify-center p-12 text-slate-400">Loading...</div>}>
+          <BioPublicView data={new URLSearchParams(window.location.search).get('bio') || ''} onCreateNewQR={() => { window.location.href = '/'; }} />
         </React.Suspense>
       ) : currentView === 'page-view' ? (
         <React.Suspense fallback={<div className="flex-1 flex items-center justify-center p-12 text-slate-400">Loading...</div>}>

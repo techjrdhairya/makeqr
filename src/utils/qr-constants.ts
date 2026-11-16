@@ -329,15 +329,12 @@ export const DEFAULT_CONFIG: QRConfig = {
     memo: 'Design services invoice #1042',
   },
   social: {
-    displayName: 'Studio Nova',
-    bio: 'Digital design studio crafting branded vector experiences and interfaces.',
+    displayName: '',
+    bio: '',
     avatarUrl: '',
     theme: 'gradient',
     links: [
-      { id: '1', platform: 'website', label: 'Official Website', url: 'https://example.com' },
-      { id: '2', platform: 'instagram', label: 'Instagram Portfolio', url: 'https://instagram.com' },
-      { id: '3', platform: 'x', label: 'X (Twitter)', url: 'https://x.com' },
-      { id: '4', platform: 'github', label: 'Open Source Repos', url: 'https://github.com' },
+      { id: '1', platform: 'website', label: '', url: '' },
     ],
   },
   dynamic: {
