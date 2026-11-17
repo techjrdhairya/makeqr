@@ -23,6 +23,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { MakeQRLogo } from './MakeQRLogo';
 import { useAuth } from '../context/AuthContext';
 import { useCoins } from '../context/CoinsContext';
+import { TierBadge } from './TierBadge';
 
 export type AppViewMode = 'home' | 'choose-type' | 'studio' | 'my-codes' | 'file-view' | 'expired' | 'barcode' | 'pricing' | 'support' | 'page-view' | 'bio-view' | 'rewards';
 
@@ -62,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme,
 }) => {
   const { user, openAuthModal, signOut } = useAuth();
-  const { coins, guestTrialAvailable, openCoinsModal } = useCoins();
+  const { coins, tier, guestTrialAvailable, openCoinsModal } = useCoins();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -284,6 +285,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <QrCode className="h-2.5 w-2.5" />
             </div>
             <span className="font-black">{coins}</span>
+            {tier.id !== 'bronze' && <span className="sm:hidden"><TierBadge tier={tier} size="xs" iconOnly /></span>}
+            {tier.id !== 'bronze' && <span className="hidden sm:inline-flex"><TierBadge tier={tier} size="xs" /></span>}
             {guestTrialAvailable && (
               <span className="hidden 2xl:inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-black bg-emerald-500 text-white shadow-2xs">
                 <Sparkles className="h-2.5 w-2.5" /> Free Pass
@@ -351,7 +354,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <span>QRoins &amp; Rewards</span>
                       </div>
                       <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-black text-amber-700 dark:bg-amber-950/80 dark:text-amber-300">
-                        {coins} 🪙
+                        {coins}
                       </span>
                     </button>
 

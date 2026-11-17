@@ -203,9 +203,12 @@ export async function awardUserCoinsInCloud(
       const currentQrs = typeof data.qrsCreated === 'number' ? data.qrsCreated : 0;
       const newCoins = Math.max(0, currentCoins + amount);
       const newQrs = isQrCreation ? currentQrs + 1 : currentQrs;
+      const prevLifetime = typeof data.lifetimeCoins === 'number' ? data.lifetimeCoins : currentCoins;
 
       await updateDoc(userRef, {
         coins: newCoins,
+        // Lifetime QRoins earned drives the membership tier (spending never lowers it)
+        ...(amount > 0 ? { lifetimeCoins: Math.max(prevLifetime, currentCoins) + amount } : {}),
         ...(isQrCreation ? { qrsCreated: newQrs } : {}),
         updatedAt: new Date().toISOString(),
       });
@@ -236,8 +239,11 @@ export async function unlockFeatureInCloud(
         }
         unlocked.push(featureId);
         const newCoins = currentCoins - cost;
+        const prevLifetime = typeof data.lifetimeCoins === 'number' ? data.lifetimeCoins : currentCoins;
         await updateDoc(userRef, {
           coins: newCoins,
+          // keep the tier safe: remember the highest balance before spending
+          lifetimeCoins: Math.max(prevLifetime, currentCoins),
           unlockedFeatures: unlocked,
           updatedAt: new Date().toISOString(),
         });

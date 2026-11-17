@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Coins,
   Lock,
+  Crown,
 } from 'lucide-react';
 import { 
   QRConfig, 
@@ -21,6 +22,7 @@ import {
 } from '../types';
 import { BUILTIN_LOGOS, COLOR_PRESETS } from '../utils/qr-constants';
 import { useCoins } from '../context/CoinsContext';
+import { ExclusiveDesigns } from './ExclusiveDesigns';
 
 const AIBrandStylist = React.lazy(() => import('./AIBrandStylist').then(m => ({ default: m.AIBrandStylist })));
 
@@ -29,7 +31,7 @@ interface DesignCustomizerProps {
   onChange: (updater: Partial<QRConfig>) => void;
 }
 
-type TabType = 'frames' | 'colors' | 'logos' | 'shapes';
+type TabType = 'frames' | 'colors' | 'logos' | 'shapes' | 'exclusive';
 
 export const DesignCustomizer: React.FC<DesignCustomizerProps> = ({ config, onChange }) => {
   const [activeTab, setActiveTab] = useState<TabType>('frames');
@@ -96,6 +98,7 @@ export const DesignCustomizer: React.FC<DesignCustomizerProps> = ({ config, onCh
           { id: 'colors', label: 'Colors & Gradients', shortLabel: 'Colors', icon: Palette },
           { id: 'logos', label: 'Logos & Icons', shortLabel: 'Logos', icon: Smile },
           { id: 'shapes', label: 'Dots & Eyes', shortLabel: 'Shapes', icon: Grid3X3 },
+          { id: 'exclusive', label: 'Exclusive', shortLabel: 'VIP', icon: Crown },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -126,6 +129,8 @@ export const DesignCustomizer: React.FC<DesignCustomizerProps> = ({ config, onCh
             onApplyAITheme={(theme) => onChange(theme)}
           />
         </React.Suspense>
+
+        {activeTab === 'exclusive' && <ExclusiveDesigns config={config} onChange={onChange} />}
 
         {/* TAB 1: FRAMES & BRANDING */}
         {activeTab === 'frames' && (

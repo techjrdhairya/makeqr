@@ -328,9 +328,9 @@ export async function redeemReferral(uid: string, raw: string): Promise<RedeemRe
     const refereeName = String(meP.data()?.displayName || 'A friend');
     t.set(meRef, { referredBy: referrerUid, referredByCode: code, referredByName: referrerName, redeemedAt: Date.now() }, { merge: true });
     t.set(refRef, { referralsCount: FieldValue.increment(1), referralEarned: FieldValue.increment(REFERRAL_BONUS) }, { merge: true });
-    t.update(meProfile, { coins: FieldValue.increment(REFERRAL_BONUS), updatedAt: new Date().toISOString() });
+    t.update(meProfile, { coins: FieldValue.increment(REFERRAL_BONUS), lifetimeCoins: FieldValue.increment(REFERRAL_BONUS), updatedAt: new Date().toISOString() });
     // lastReferral* lets the referrer's open app show "<friend> joined" live
-    t.update(refProfile, { coins: FieldValue.increment(REFERRAL_BONUS), lastReferralName: refereeName, lastReferralAt: Date.now(), lastReferralBonus: REFERRAL_BONUS, updatedAt: new Date().toISOString() });
+    t.update(refProfile, { coins: FieldValue.increment(REFERRAL_BONUS), lifetimeCoins: FieldValue.increment(REFERRAL_BONUS), lastReferralName: refereeName, lastReferralAt: Date.now(), lastReferralBonus: REFERRAL_BONUS, updatedAt: new Date().toISOString() });
     t.set(database.collection('srv_referral_log').doc(), { referrerUid, refereeUid: uid, code, bonus: REFERRAL_BONUS, at: Date.now(), refereeName, referrerName });
     const base = typeof meP.data()?.coins === 'number' ? (meP.data()!.coins as number) : 50;
     return { ok: true, newCoins: base + REFERRAL_BONUS, bonus: REFERRAL_BONUS, referrerName };

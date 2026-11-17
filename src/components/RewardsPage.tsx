@@ -5,6 +5,7 @@ import {
 import { useCoins, PREMIUM_FEATURES, PremiumFeatureDef } from '../context/CoinsContext';
 import { useAuth } from '../context/AuthContext';
 import { ReferralPanel } from './ReferralPanel';
+import { TierShowcase } from './TierShowcase';
 
 interface Props {
   onBack: () => void;
@@ -13,7 +14,7 @@ interface Props {
 /** Full-page "Rewards & Coins" (replaces the old pop-up). */
 export const RewardsPage: React.FC<Props> = ({ onBack }) => {
   const {
-    coins, isFeatureUnlocked, guestTrialAvailable, activateGuestTrial, unlockWithCoins, activeFeaturePrompt,
+    coins, isFeatureUnlocked, guestTrialAvailable, activateGuestTrial, unlockWithCoins, activeFeaturePrompt, tierGrant,
   } = useCoins();
   const { user, openAuthModal } = useAuth();
   const [message, setMessage] = React.useState<string | null>(null);
@@ -63,7 +64,7 @@ export const RewardsPage: React.FC<Props> = ({ onBack }) => {
               </div>
               {!user && (
                 <button type="button" onClick={openAuthModal} className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-amber-900 shadow-sm hover:bg-amber-50 cursor-pointer">
-                  <LogIn className="h-3.5 w-3.5" /> Sign in (+50 🪙)
+                  <LogIn className="h-3.5 w-3.5" /> Sign in (+50)
                 </button>
               )}
             </div>
@@ -74,6 +75,8 @@ export const RewardsPage: React.FC<Props> = ({ onBack }) => {
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-3 lg:px-8">
         {/* Left / main column */}
         <div className="space-y-6 lg:col-span-2">
+          <TierShowcase />
+
           {target && (
             <section className="rounded-2xl border-2 border-amber-200 bg-amber-50/70 p-5 dark:border-amber-800/60 dark:bg-amber-950/30">
               <div className="flex items-start gap-3.5">
@@ -128,6 +131,7 @@ export const RewardsPage: React.FC<Props> = ({ onBack }) => {
             <div className="space-y-2.5">
               {Object.values(PREMIUM_FEATURES).map((feat) => {
                 const unlocked = isFeatureUnlocked(feat.id);
+                const grant = tierGrant(feat.id);
                 return (
                   <div key={feat.id} className={`flex items-center justify-between gap-3 rounded-2xl border p-3.5 ${unlocked ? 'border-emerald-200/60 bg-emerald-50/40 dark:border-emerald-800/40 dark:bg-emerald-950/20' : 'border-slate-200/70 bg-white hover:border-amber-300 dark:border-slate-700/70 dark:bg-slate-800/80 dark:hover:border-amber-700'}`}>
                     <div className="flex min-w-0 items-center gap-3">
@@ -140,7 +144,7 @@ export const RewardsPage: React.FC<Props> = ({ onBack }) => {
                       </div>
                     </div>
                     {unlocked ? (
-                      <span className="shrink-0 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">Active</span>
+                      <span className="shrink-0 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">{grant ? `Included with ${grant.name}` : 'Active'}</span>
                     ) : (
                       <button type="button" onClick={() => unlock(feat.id, feat.cost)} className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-amber-600 cursor-pointer">
                         <QrCode className="h-3 w-3" /> {feat.cost}

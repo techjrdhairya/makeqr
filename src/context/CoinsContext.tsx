@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { TIERS, TierDef, getTier, getTierIndex, getTierProgress, tierGrantsFeature, TierProgress } from '../utils/tiers';
 import { 
   syncUserProfile, 
   awardUserCoinsInCloud, 
@@ -63,6 +64,15 @@ export const PREMIUM_FEATURES: Record<string, PremiumFeatureDef> = {
 
 interface CoinsContextType {
   coins: number;
+  /** Total QRoins ever earned (spending never lowers it) */
+  lifetimeCoins: number;
+  tier: TierDef;
+  tierProgress: TierProgress;
+  /** Set when the member just reached a new tier */
+  tierUp: TierDef | null;
+  dismissTierUp: () => void;
+  /** Tier that grants this feature for free, if the member's tier includes it */
+  tierGrant: (featureId: string) => TierDef | null;
   unlockedFeatures: string[];
   isFeatureUnlocked: (featureId: string) => boolean;
   guestTrialAvailable: boolean;
@@ -82,6 +92,9 @@ interface CoinsContextType {
   setCoinsFromServer: (balance: number, bonus?: number, message?: string) => void;
 }
 
+const GUEST_LIFETIME_STORAGE_KEY = 'makeqr_guest_lifetime_v1';
+const SESSION_LIFETIME_KEY = 'makeqr_session_lifetime';
+const TIER_SEEN_PREFIX = 'makeqr_tier_seen_';
 const GUEST_COINS_STORAGE_KEY = 'makeqr_guest_coins_v1';
 const GUEST_TRIAL_STORAGE_KEY = 'makeqr_guest_trial_used_v1';
 const GUEST_UNLOCKED_STORAGE_KEY = 'makeqr_guest_unlocked_features_v1';
@@ -108,6 +121,18 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       return 20;
     }
   });
+
+  const [lifetime, setLifetime] = useState<number>(() => {
+    try {
+      const key = localStorage.getItem(SESSION_UID_KEY) ? SESSION_LIFETIME_KEY : GUEST_LIFETIME_STORAGE_KEY;
+      const v = parseInt(localStorage.getItem(key) || '0', 10);
+      return isNaN(v) ? 0 : Math.max(0, v);
+    } catch { return 0; }
+  });
+  const [profileReady, setProfileReady] = useState<boolean>(() => {
+    try { return !localStorage.getItem(SESSION_UID_KEY); } catch { return true; }
+  });
+  const [tierUp, setTierUp] = useState<TierDef | null>(null);
 
   const [guestTrialUsed, setGuestTrialUsed] = useState<boolean>(() => {
     try {
@@ -139,6 +164,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Sync user coins & profile whenever user changes (signing in)
   useEffect(() => {
     if (!user) return;
+    setProfileReady(false);
 
     let mounted = true;
     const mergeKey = `makeqr_guest_coins_merged_${user.uid}`;
@@ -191,6 +217,11 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setCoins(Math.max(0, data.coins));
         try { localStorage.setItem(SESSION_COINS_KEY, String(Math.max(0, data.coins))); } catch {}
       }
+      if (typeof data.lifetimeCoins === 'number') {
+        setLifetime(Math.max(0, data.lifetimeCoins));
+        try { localStorage.setItem(SESSION_LIFETIME_KEY, String(Math.max(0, data.lifetimeCoins))); } catch {}
+      }
+      setProfileReady(true);
       if (Array.isArray(data.unlockedFeatures)) setUnlockedFeatures(data.unlockedFeatures);
       if (data.guestTrialUsed === true) setGuestTrialUsed(true);
 
@@ -220,6 +251,8 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setCoins(c !== null && !isNaN(parseInt(c, 10)) ? Math.max(0, parseInt(c, 10)) : 0);
         const f = localStorage.getItem(GUEST_UNLOCKED_STORAGE_KEY);
         setUnlockedFeatures(f ? JSON.parse(f) : []);
+        setLifetime(Math.max(0, parseInt(localStorage.getItem(GUEST_LIFETIME_STORAGE_KEY) || '0', 10) || 0));
+        setProfileReady(true);
       } catch {
         setCoins(0);
         setUnlockedFeatures([]);
@@ -237,16 +270,43 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (!user) {
       try {
         localStorage.setItem(GUEST_COINS_STORAGE_KEY, coins.toString());
+        localStorage.setItem(GUEST_LIFETIME_STORAGE_KEY, String(Math.max(lifetime, coins)));
         localStorage.setItem(GUEST_TRIAL_STORAGE_KEY, guestTrialUsed ? 'true' : 'false');
         localStorage.setItem(GUEST_UNLOCKED_STORAGE_KEY, JSON.stringify(unlockedFeatures));
       } catch {}
     }
-  }, [coins, guestTrialUsed, unlockedFeatures, user]);
+  }, [coins, lifetime, guestTrialUsed, unlockedFeatures, user]);
+
+  // Membership tier comes from lifetime QRoins earned (a balance that was only ever spent never drops it)
+  const effectiveLifetime = Math.max(lifetime, coins);
+  const tier = getTier(effectiveLifetime);
+  const tierProgress = getTierProgress(effectiveLifetime);
+
+  // Celebrate reaching a new tier (but never on first load or while the profile is still loading)
+  useEffect(() => {
+    if (!profileReady) return;
+    const key = TIER_SEEN_PREFIX + (user?.uid || 'guest');
+    const idx = getTierIndex(effectiveLifetime);
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null) { localStorage.setItem(key, String(idx)); return; }
+      const seen = parseInt(raw, 10);
+      if (idx > seen) {
+        localStorage.setItem(key, String(idx));
+        setTierUp(TIERS[idx]);
+      } else if (idx < seen) {
+        localStorage.setItem(key, String(idx));
+      }
+    } catch {}
+  }, [effectiveLifetime, profileReady, user?.uid]);
+
+  const tierGrant = (featureId: string) => tierGrantsFeature(effectiveLifetime, featureId);
+  const dismissTierUp = () => setTierUp(null);
 
   const guestTrialAvailable = !guestTrialUsed;
 
   const isFeatureUnlocked = (featureId: string): boolean => {
-    return unlockedFeatures.includes(featureId);
+    return unlockedFeatures.includes(featureId) || tierGrantsFeature(effectiveLifetime, featureId) !== null;
   };
 
   const activateGuestTrial = (featureId: string): boolean => {
@@ -300,6 +360,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       // Cloud unlock
       const res = await unlockFeatureInCloud(user.uid, featureId, cost);
       if (res.success) {
+        setLifetime((l) => Math.max(l, coins));
         setCoins(res.newCoins);
         setUnlockedFeatures(res.unlockedFeatures);
         setCoinToast({
@@ -314,6 +375,7 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
 
     // Local / Guest unlock
+    setLifetime((l) => Math.max(l, coins));
     const newCoins = coins - cost;
     const newUnlocked = [...unlockedFeatures, featureId];
     setCoins(newCoins);
@@ -357,8 +419,10 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (user) {
       const newBalance = await awardUserCoinsInCloud(user.uid, amount, isNewQr);
       setCoins(newBalance);
+      setLifetime((l) => Math.max(l, coins) + amount);
     } else {
       setCoins((prev) => prev + amount);
+      setLifetime((l) => Math.max(l, coins) + amount);
     }
 
     setCoinToast({
@@ -400,6 +464,12 @@ export const CoinsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     <CoinsContext.Provider
       value={{
         coins,
+        lifetimeCoins: effectiveLifetime,
+        tier,
+        tierProgress,
+        tierUp,
+        dismissTierUp,
+        tierGrant,
         unlockedFeatures,
         isFeatureUnlocked,
         guestTrialAvailable,

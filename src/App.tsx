@@ -15,6 +15,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CoinsProvider, useCoins } from './context/CoinsContext';
 import { CoinRewardToast } from './components/CoinRewardToast';
+import { TierCelebration } from './components/TierCelebration';
 import { QRConfig, SavedQR, ContentType, FileData } from './types';
 import { getConfigPayload } from './utils/qr-generator';
 import { DEFAULT_CONFIG } from './utils/qr-constants';
@@ -1808,6 +1809,7 @@ export default function App() {
       <CoinsProvider>
         <MainApp />
         <CoinRewardToast />
+        <TierCelebration />
         <ReferralPrompt />
       </CoinsProvider>
     </AuthProvider>
